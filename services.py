@@ -6,7 +6,7 @@ def list_expenses() -> list:
     return Expense.query.order_by(Expense.data.desc()).all()
 
 
-def add_expense(value, category, description) -> object:
+def add_expense(value, category, description) -> Expense:
     new = Expense(value=value, category=category, description=description)
     db.session.add(new)
     db.session.commit()
@@ -96,3 +96,58 @@ def calculate_category_average(expenses: list) -> dict:
     for c, t in category_values.items():
         total_average[c] = t / category_quantity[c]
     return total_average
+
+
+
+
+def find_highest_expense(expenses: list) -> Expense | None:
+    if not expenses:
+        return None
+    return max(expenses, key=lambda e: e.value)
+
+
+def find_lowest_expense(expenses: list) -> Expense | None:
+    if not expenses:
+        return None
+    return min(expenses, key=lambda e: e.value)
+
+
+
+
+def filter_by_category(expenses: list, category: str) -> list:
+    return [e for e in expenses if e.category == category]
+
+
+def filter_by_month(expenses: list, month: int, year: int) -> list:
+    return [e for e in expenses if e.date.month == month and e.date.year == year]
+
+
+def filter_by_year(expenses: list, year: int) -> list:
+    return [e for e in expenses if e.date.year == year]
+
+
+def filter_by_value_range(expenses: list, min_value: float, max_value: float) -> list:
+    return[e for e in expenses if min_value <= e.value <= max_value]
+
+
+def filter_by_description(expenses: list, description: str) -> list:
+    return[e for e in expenses if description in e.description]
+
+
+def filter_expenses(expenses, category=None, month=None, year=None, 
+                    min_value=None, max_value=None, description=None):
+    result = expenses
+
+    if category is not None:
+        result = filter_by_category(result, category)
+    
+    if month is not None and year is not None:
+        result = filter_by_month(result, month, year)
+    
+    if min_value is not None and max_value is not None:
+        result = filter_by_value_range(result, min_value, max_value)
+    
+    if description is not None:
+        result = filter_by_description(result, description)
+
+    return result
